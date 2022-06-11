@@ -57,7 +57,7 @@ public class ClientHandler implements Runnable{
 
     public void broadcastMessage(String messageToSend){
         for (ClientHandler clientHandler : clientHandlers) {
-            Server.gui.setEditorPanelText(messageToSend); //was der Server liest
+            Server.gui.setEditorPanelText(messageToSend, 0); //was der Server liest
             try {
                 if (!clientHandler.clientUsername.equals(clientUsername)){
                     clientHandler.writer.write(messageToSend);

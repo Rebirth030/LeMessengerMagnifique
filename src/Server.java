@@ -48,7 +48,7 @@ public class Server {
         try{
             while (!serverSocket.isClosed()){
                 Socket socket = serverSocket.accept();
-                gui.setEditorPanelText("A new Client has Connected!");
+                gui.setEditorPanelText("A new Client has Connected!", 0);
                 ClientHandler clientHandler = new ClientHandler(socket);
                 Thread client = new Thread(clientHandler);
                 client.start();
