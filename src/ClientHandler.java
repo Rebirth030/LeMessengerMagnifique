@@ -1,20 +1,37 @@
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class ClientHandler implements Runnable{
 
+    /**
+     * ArrayList worin alle client handlers gespeichert werden.
+     */
     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+
+    /**
+     * Client socket
+     */
     private Socket socket;
+
+    /**
+     * Zum Lesen der Texte
+     */
     private BufferedReader reader;
+
+    /**
+     * zum Schreiben der Texte
+     */
     private BufferedWriter writer;
+
     private String clientUsername;
 
     public ClientHandler(Socket socket){
         try {
             this.socket = socket;
-            this.writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
+            this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
             this.clientUsername = reader.readLine();
             clientHandlers.add(this);
             broadcastMessage("SERVER: " + clientUsername + " has entered the chat");
@@ -40,6 +57,7 @@ public class ClientHandler implements Runnable{
 
     public void broadcastMessage(String messageToSend){
         for (ClientHandler clientHandler : clientHandlers) {
+            Server.gui.setEditorPanelText(messageToSend); //was der Server liest
             try {
                 if (!clientHandler.clientUsername.equals(clientUsername)){
                     clientHandler.writer.write(messageToSend);
