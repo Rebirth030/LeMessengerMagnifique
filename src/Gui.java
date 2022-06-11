@@ -10,6 +10,7 @@ import java.util.Objects;
 
 public class Gui extends JFrame {
 
+    protected JPanel panel;
     private JEditorPane editorPanel;
     private int rightLocation;
     private String usernameString = "";
@@ -25,7 +26,11 @@ public class Gui extends JFrame {
         setLocationRelativeTo(null);
         setTitle(user);
         setResizable(true);
-        setBackground(Color.darkGray);
+
+        panel = new JPanel();
+        panel.setBounds(0,0,getWidth(),getHeight());
+        panel.setLayout(null);
+        add(panel);
 
         editorPanel = new JEditorPane();
         editorPanel.setEditable(false);
@@ -34,7 +39,7 @@ public class Gui extends JFrame {
         editorScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         editorScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         editorScrollPane.setBounds(0, 0, getWidth() / 2, getHeight() * 2 / 3);
-        add(editorScrollPane);
+        panel.add(editorScrollPane);
     }
 
     public void setEditorPanelText(String text) {
@@ -51,8 +56,8 @@ public class Gui extends JFrame {
         encryptionKey.setBounds(rightLocation, 30, 200, 30);
         JLabel label1 = new JLabel("Chose Key or set a new:");
         label1.setBounds(rightLocation, 60, 250, 30);
-        add(encryptionKey);
-        add(label1);
+        panel.add(encryptionKey);
+        panel.add(label1);
 
         JTextField keyEingabe = new JTextField();
         keyEingabe.setBounds(rightLocation, 90, 200, 30);
@@ -67,13 +72,13 @@ public class Gui extends JFrame {
                 }
             }
         });
-        add(keyEingabe);
+        panel.add(keyEingabe);
         JLabel label2 = new JLabel("Chose encryption:");
         label2.setBounds(rightLocation, 160, 200, 30);
-        add(label2);
+        panel.add(label2);
         verschluesselung = new JComboBox(Verschlüsselungen);
         verschluesselung.setBounds(rightLocation, 190, 200, 30);
-        add(verschluesselung);
+        panel.add(verschluesselung);
 
     }
 
@@ -92,7 +97,7 @@ public class Gui extends JFrame {
                 }
             }
         });
-        add(eingabe);
+        panel.add(eingabe);
 
         JButton button = new JButton();
         button.setBounds(getWidth() / 2 - quadrat, getHeight() * 2 / 3, quadrat - 1, quadrat - 1);
@@ -105,7 +110,7 @@ public class Gui extends JFrame {
                 }
             }
         });
-        add(button);
+        panel.add(button);
     }
 
     public String getUserName() {

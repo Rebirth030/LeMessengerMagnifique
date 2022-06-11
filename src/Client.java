@@ -31,7 +31,7 @@ public class Client {
         client.sendUsername();
         client.listenForMessage();
         gui.addWritingArea(client);
-        gui.repaint();
+        gui.panel.repaint();
     }
 
     public void sendUsername() {
