@@ -40,9 +40,8 @@ public class Client {
     }
 
     public static void createNewConnection(String IP, String username, int port, int number) {
-        Socket socket = null;
         try {
-            socket = new Socket(IP, port);
+            Socket socket = new Socket(IP, port);
             Client client = new Client(socket, username, number);
             clients.add(client);
             gui.addClientGui(Gui.jPanels.get(client.getNumber()));
@@ -71,7 +70,7 @@ public class Client {
             String encryption = gui.getEncryption(number);
             String key = gui.getKey(number);
 
-            if (!Objects.equals(encryption, "no encryption")) {
+            if (!Objects.equals(encryption, "no encryption") && !Objects.equals(encryption, "Diffie-Hellman")) {
                 Cryption cryption = new Cryption(key, username + ": " + messageToSend, encryption);
                 writer.write(cryption.encrypt());
             } else {
@@ -99,7 +98,7 @@ public class Client {
                             String encryption = gui.getEncryption(number);
                             String key = gui.getKey(number);
 
-                            if (!Objects.equals(encryption, "no encryption")) {
+                            if (!Objects.equals(encryption, "no encryption") && !Objects.equals(encryption, "Diffie-Hellman")) {
                                 Cryption cryption = new Cryption(key, msgFromChat, encryption);
                                 msgFromChat = cryption.decrypt();
                             }

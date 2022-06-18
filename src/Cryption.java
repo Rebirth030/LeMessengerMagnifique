@@ -1,10 +1,12 @@
 import javax.crypto.*;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.*;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Locale;
@@ -12,12 +14,13 @@ import java.util.Objects;
 
 public class Cryption {
     private static final char[] ALPHABET = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ß', ' ', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '!', '.', '?', '&', '%', '$', '§', '=', '/', '{', '}', '[', ']', '(', ')', '*', '#', '+', '~', '-', ':', ';', '_', '@', '€', 'ü', 'ä', 'ö', '<', '>', '|', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
-    private String keyWord;
-    private String text;
-    private final String encryption;
+    private String keyWord, text, encryption;
     private int[] key;
     private byte[] AESKey;
     private Key secretKey;
+    private static BigInteger n, p, a;
+    private static int bitLength = 128;
+    static SecureRandom random = new SecureRandom();
 
 
     public Cryption(String keyWord, String text, String encryption) {
@@ -37,7 +40,7 @@ public class Cryption {
     public String decrypt() {
         if (Objects.equals(encryption, "Vigenère")) return decryptVigenère();
         if (Objects.equals(encryption, "AES")) return decryptAES();
-        return null;
+        return "error: could not find decryption";
     }
 
     private void encryptKeyWordAES() {
@@ -68,12 +71,10 @@ public class Cryption {
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
             return new String(cipher.doFinal(Base64.getDecoder().decode(text)));
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException |
-                 IllegalBlockSizeException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            return "error: no decryption possible";
         }
     }
-
 
 
     private void encryptKeyWordVigenère() {
@@ -109,5 +110,74 @@ public class Cryption {
             }
         }
         return new String(result);
+    }
+
+    protected static String generatePrime() {
+        System.out.println(BigInteger.probablePrime(bitLength, random));
+        return BigInteger.probablePrime(bitLength, random).toString();
+    }
+
+    protected static String generatePublicKey(BigInteger n, BigInteger p) {
+        Cryption.n = n;
+        Cryption.p = p;
+        a = new BigInteger(Integer.toString((int) (Math.random() * bitLength)));
+        BigInteger A = n.modPow(a, p);
+        return A.toString();
+    }
+
+    protected static String generateKey(BigInteger B) {
+        return B.modPow(a, p).toString();
+    }
+
+    public static String getKey(String password, String filepath, int position) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException, InvalidKeySpecException {
+        KeyStore keyStore = KeyStore.getInstance("JCEKS");
+        keyStore.load(null, password.toCharArray());
+        KeyStore.PasswordProtection keyStorePP = new KeyStore.PasswordProtection(password.toCharArray());
+
+        FileInputStream fIn = new FileInputStream(filepath);
+
+        keyStore.load(fIn, password.toCharArray());
+
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBE");
+
+        KeyStore.SecretKeyEntry ske =
+                (KeyStore.SecretKeyEntry) keyStore.getEntry(String.valueOf(position), keyStorePP);
+
+        PBEKeySpec keySpec = (PBEKeySpec) factory.getKeySpec(
+                ske.getSecretKey(),
+                PBEKeySpec.class);
+        fIn.close();
+
+        return new String(keySpec.getPassword());
+
+    }
+
+    public static void addToKeyStore(String Key, String password, String filepath) throws Exception {
+
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBE");
+        SecretKey generatedSecret = factory.generateSecret(new PBEKeySpec(Key.toCharArray()));
+
+        File file = new File(filepath);
+        KeyStore keyStore = KeyStore.getInstance("JCEKS");
+
+        FileInputStream fIn = new FileInputStream(filepath);
+        keyStore.load(fIn, password.toCharArray());
+        fIn.close();
+
+        KeyStore.PasswordProtection keyStorePP = new KeyStore.PasswordProtection(password.toCharArray());
+
+        keyStore.setEntry(String.valueOf(keyStore.size()), new KeyStore.SecretKeyEntry(generatedSecret), keyStorePP);
+
+        FileOutputStream fos = new java.io.FileOutputStream(filepath);
+        keyStore.store(fos, password.toCharArray());
+        fos.close();
+    }
+
+    public static int getKeyStoreSize(String filepath, String password) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+        FileInputStream fIn = new FileInputStream(filepath);
+        KeyStore keyStore = KeyStore.getInstance("JCEKS");
+        keyStore.load(fIn, password.toCharArray());
+        fIn.close();
+        return keyStore.size();
     }
 }
